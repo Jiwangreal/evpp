@@ -30,6 +30,24 @@ Quick Start
 
 ### Download the source code of evpp
 
+
+Hardware Environment:
+
+```shell
+➜ evpp git:(master) uname -a
+Linux script-wang 5.15.150.1-microsoft-standard-WSL2 #1 SMP Thu Mar 7 03:22:57 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux
+
+➜ evpp git:(master) lsb_release -a
+No LSB modules are available.
+Distributor ID: Ubuntu
+Description:    Ubuntu 20.04.6 LTS
+Release:        20.04
+Codename:       focal
+➜ evpp git:(master) 
+```
+
+
+	$ export LD_LIBRARY_PATH=${PWD}/3rdparty/libgflags-dev_2.2.2/usr/lib/x86_64-linux-gnu
 	$ git clone https://github.com/Qihoo360/evpp
 	$ cd evpp
 	$ git submodule update --init --recursive
@@ -37,7 +55,7 @@ Quick Start
 ### Compile and run unit tests.
 	
 	$ mkdir -p build && cd build
-	$ cmake -DCMAKE_BUILD_TYPE=Debug ..
+	$ cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=./build/install .. 
 	$ make -j
 	$ make test
 

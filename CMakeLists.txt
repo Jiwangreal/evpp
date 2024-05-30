@@ -1,5 +1,18 @@
 cmake_minimum_required (VERSION 2.8)
 
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/boost-1.82/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libgoogle-glog-dev_0.4.0/usr/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libgflags-dev_2.2.2/usr/include)
+
+
+
+find_library(Boost_SYSTEM_LIBRARY NAMES boost_system HINTS ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/boost-1.82/lib)
+find_library(Boost_THREAD_LIBRARY NAMES boost_thread HINTS ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/boost-1.82/lib)
+find_library(GLOG_LIBRARY NAMES glog HINTS ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libgoogle-glog-dev_0.4.0/usr/lib/x86_64-linux-gnu)
+find_library(GFLAGS_LIBRARY NAMES gflags HINTS ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libgflags-dev_2.2.2/usr/lib/x86_64-linux-gnu/)
+
+
 project (safe-evpp C CXX)
 
 if (UNIX)
@@ -47,9 +60,9 @@ string (REPLACE ";" " " CMAKE_CXX_FLAGS "${CXX_FLAGS}")
 if (UNIX)
     SET(CMAKE_CXX_FLAGS_DEBUG   "-O0 -g -ggdb -D_DEBUG -DGOOGLE_STRIP_LOG=0")
     SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -g -ggdb -DNDEBUG -DGOOGLE_STRIP_LOG=1")
-    SET(DEPENDENT_LIBRARIES event glog pthread)
+    SET(DEPENDENT_LIBRARIES event ${GLOG_LIBRARY} ${GFLAGS_LIBRARY} pthread)
 else (UNIX)
-    SET(DEPENDENT_LIBRARIES event glog)
+    SET(DEPENDENT_LIBRARIES event ${GLOG_LIBRARY})
 endif (UNIX)
 
 # Set to true if https support is needed.

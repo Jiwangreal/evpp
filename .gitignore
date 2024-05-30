@@ -42,6 +42,8 @@ core.*
 
 *.out
 
+.cache/
+
 *.orig
 
 build
