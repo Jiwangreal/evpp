@@ -54,9 +54,8 @@ Codename:       focal
 
 ### Compile and run unit tests.
 	
-	$ mkdir -p build && cd build
-	$ cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=./build/install .. 
-	$ make -j
+	$ cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=./build/install -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+	$ cmake --build build -j8 --target install
 	$ make test
 
 ### Run the examples
