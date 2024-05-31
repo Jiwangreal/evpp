@@ -60,6 +60,7 @@ Codename:       focal
 
 ### Run the examples
 
+	$ export LD_LIBRARY_PATH=/home/wangji/sovd/evpp/3rdparty/libgflags-dev_2.2.2/usr/lib/x86_64-linux-gnu/
 	$ cd evpp/build/bin
 
 ##### Run a HTTP client example:
