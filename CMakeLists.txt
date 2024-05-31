@@ -4,8 +4,9 @@ cmake_minimum_required (VERSION 2.8)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/boost-1.82/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libgoogle-glog-dev_0.4.0/usr/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libgflags-dev_2.2.2/usr/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libevent-dev_2.1.11-stable-1_amd64/usr/include/)
 
-
+link_directories(${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libevent-dev_2.1.11-stable-1_amd64/usr/lib/x86_64-linux-gnu)
 
 find_library(Boost_SYSTEM_LIBRARY NAMES boost_system HINTS ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/boost-1.82/lib)
 find_library(Boost_THREAD_LIBRARY NAMES boost_thread HINTS ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/boost-1.82/lib)
