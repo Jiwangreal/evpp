@@ -2,13 +2,13 @@
 
 #include <evpp/windows_port.h>
 
-// We must link against these libraries on windows platform for Visual Studio IDE
+// We must link against these libraries on windows platform for Visual Studio
+// IDE
 #ifdef _WIN32
-#ifndef EVNSQ_EXPORTS
-#pragma comment(lib, "evnsq_static.lib")
+    #ifndef EVNSQ_EXPORTS
+        #pragma comment(lib, "evnsq_static.lib")
+    #endif
 #endif
-#endif
-
 
 //! Module symbol export
 // #ifdef H_WINDOWS_API

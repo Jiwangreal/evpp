@@ -9,9 +9,11 @@
 struct event;
 struct event_base;
 
-namespace recipes {
+namespace recipes
+{
 
-class EventWatcher {
+class EventWatcher
+{
 public:
     typedef std::function<void()> Handler;
 
@@ -23,14 +25,20 @@ public:
     void Cancel();
 
     // @brief :
-    // @param[IN] const Handler& cb - The callback which will be called when this event is canceled.
+    // @param[IN] const Handler& cb - The callback which will be called when
+    // this event is canceled.
     // @return void -
     void SetCancelCallback(const Handler& cb);
 
-    void ClearHandler() { handler_ = Handler(); }
+    void ClearHandler()
+    {
+        handler_ = Handler();
+    }
+
 protected:
     // @note It MUST be called in the event thread.
-    // @param timeout the maximum amount of time to wait for the event, or 0 to wait forever
+    // @param timeout the maximum amount of time to wait for the event, or 0 to
+    // wait forever
     bool Watch(double timeout_ms);
 
 protected:
@@ -40,7 +48,8 @@ protected:
     void FreeEvent();
 
     virtual bool DoInit() = 0;
-    virtual void DoClose() {}
+    virtual void DoClose()
+    { }
 
 protected:
     struct event* event_;
@@ -50,33 +59,38 @@ protected:
     Handler cancel_callback_;
 };
 
-class PipeEventWatcher : public EventWatcher {
+class PipeEventWatcher : public EventWatcher
+{
 public:
     PipeEventWatcher(struct event_base* evbase, const Handler& handler);
     ~PipeEventWatcher();
 
     bool AsyncWait();
     void Notify();
+
 private:
     virtual bool DoInit();
     virtual void DoClose();
     static void HandlerFn(evutil_socket_t fd, short which, void* v);
 
-    evutil_socket_t pipe_[2]; // Write to pipe_[0] , Read from pipe_[1]
+    evutil_socket_t pipe_[2];  // Write to pipe_[0] , Read from pipe_[1]
 };
 
-class TimerEventWatcher : public EventWatcher {
+class TimerEventWatcher : public EventWatcher
+{
 public:
-    TimerEventWatcher(struct event_base* evbase, const Handler& handler, double timeout_ms);
+    TimerEventWatcher(struct event_base* evbase,
+        const Handler& handler,
+        double timeout_ms);
 
     bool AsyncWait();
 
 private:
     virtual bool DoInit();
     static void HandlerFn(evutil_socket_t fd, short which, void* v);
+
 private:
     double timeout_ms_;
 };
 
-}
-
+}  // namespace recipes

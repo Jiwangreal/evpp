@@ -3,7 +3,7 @@
 
 namespace asio
 {
-  using namespace boost::asio;
-  using boost::system::error_code;
-  using boost::thread;
-}
+using namespace boost::asio;
+using boost::system::error_code;
+using boost::thread;
+}  // namespace asio

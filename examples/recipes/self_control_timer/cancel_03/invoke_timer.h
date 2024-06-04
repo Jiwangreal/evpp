@@ -5,20 +5,22 @@
 
 struct event_base;
 
-namespace recipes {
+namespace recipes
+{
 
 class TimerEventWatcher;
 class InvokeTimer;
 
 typedef std::shared_ptr<InvokeTimer> InvokeTimerPtr;
 
-class InvokeTimer : public std::enable_shared_from_this<InvokeTimer> {
+class InvokeTimer : public std::enable_shared_from_this<InvokeTimer>
+{
 public:
     typedef std::function<void()> Functor;
 
     static InvokeTimerPtr Create(struct event_base* evloop,
-                                 double timeout_ms,
-                                 const Functor& f);
+        double timeout_ms,
+        const Functor& f);
 
     ~InvokeTimer();
 
@@ -26,9 +28,11 @@ public:
 
     void Cancel();
 
-    void set_cancel_callback(const Functor& fn) {
+    void set_cancel_callback(const Functor& fn)
+    {
         cancel_callback_ = fn;
     }
+
 private:
     InvokeTimer(struct event_base* evloop, double timeout_ms, const Functor& f);
     void OnTimerTriggered();
@@ -40,7 +44,7 @@ private:
     Functor functor_;
     Functor cancel_callback_;
     std::shared_ptr<TimerEventWatcher> timer_;
-    std::shared_ptr<InvokeTimer> self_; // Hold myself
+    std::shared_ptr<InvokeTimer> self_;  // Hold myself
 };
 
-}
+}  // namespace recipes

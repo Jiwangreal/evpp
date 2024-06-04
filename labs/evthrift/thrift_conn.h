@@ -1,14 +1,13 @@
 #pragma once
 
-
-
 #include <evpp/tcp_conn.h>
 
 #include <thrift/protocol/TProtocol.h>
 #include <thrift/transport/TBufferTransports.h>
 #include <thrift/transport/TTransportUtils.h>
 
-namespace evthrift {
+namespace evthrift
+{
 
 using apache::thrift::TProcessor;
 using apache::thrift::protocol::TProtocol;
@@ -19,9 +18,11 @@ using apache::thrift::transport::TTransportException;
 
 class ThriftServer;
 
-class ThriftConn : public std::enable_shared_from_this<ThriftConn> {
+class ThriftConn : public std::enable_shared_from_this<ThriftConn>
+{
 public:
-    enum State {
+    enum State
+    {
         kExpectFrameSize,
         kExpectFrame
     };
@@ -30,8 +31,7 @@ public:
 
 private:
     friend class ThriftServer;
-    void OnMessage(const evpp::TCPConnPtr& conn,
-                   evpp::Buffer* buffer);
+    void OnMessage(const evpp::TCPConnPtr& conn, evpp::Buffer* buffer);
 
     void Process();
 
@@ -60,4 +60,4 @@ private:
 
 typedef std::shared_ptr<ThriftConn> ThriftConnectionPtr;
 
-}
+}  // namespace evthrift

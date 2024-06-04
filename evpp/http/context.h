@@ -8,16 +8,20 @@
 
 struct evhttp_request;
 
-namespace evpp {
+namespace evpp
+{
 class EventLoop;
 }
 
-namespace evpp {
-namespace http {
+namespace evpp
+{
+namespace http
+{
 
 class Service;
 
-struct EVPP_EXPORT Context {
+struct EVPP_EXPORT Context
+{
 public:
     Context(struct evhttp_request* r);
     ~Context();
@@ -37,43 +41,53 @@ public:
     const char* original_uri() const;
 
     // The URI without any parameters
-    const  std::string& uri() const {
+    const std::string& uri() const
+    {
         return uri_;
     }
 
-    const std::string& remote_ip() const {
+    const std::string& remote_ip() const
+    {
         return remote_ip_;
     }
 
-    const Slice& body() const {
+    const Slice& body() const
+    {
         return body_;
     }
 
-    struct evhttp_request* req() const {
+    struct evhttp_request* req() const
+    {
         return req_;
     }
 
-    void set_response_http_code(int code) {
+    void set_response_http_code(int code)
+    {
         response_http_code_ = code;
     }
 
-    int response_http_code() const {
+    int response_http_code() const
+    {
         return response_http_code_;
     }
 
     // Get the first value associated with the given key from the URI.
-    std::string GetQuery(const char* query_key, size_t key_len) {
+    std::string GetQuery(const char* query_key, size_t key_len)
+    {
         const char* u = original_uri();
         return FindQueryFromURI(u, strlen(u), query_key, key_len);
     }
-    std::string GetQuery(const std::string& query_key) {
+    std::string GetQuery(const std::string& query_key)
+    {
         return GetQuery(query_key.data(), query_key.size());
     }
 
 public:
-    static std::string FindClientIPFromURI(const char* uri, size_t uri_len) {
+    static std::string FindClientIPFromURI(const char* uri, size_t uri_len)
+    {
         static const std::string __s_clientip = "clientip";
-        return FindQueryFromURI(uri, uri_len, __s_clientip.data(), __s_clientip.size());
+        return FindQueryFromURI(
+            uri, uri_len, __s_clientip.data(), __s_clientip.size());
     }
 
     // @brief Get the first value associated with the given key from the URI.
@@ -83,9 +97,13 @@ public:
     // @param[IN] key -
     // @param[IN] key_len -
     // @return std::string -
-    static std::string FindQueryFromURI(const char* uri, size_t uri_len, const char* key, size_t key_len);
+    static std::string FindQueryFromURI(const char* uri,
+        size_t uri_len,
+        const char* key,
+        size_t key_len);
     static std::string FindQueryFromURI(const char* uri, const char* key);
-    static std::string FindQueryFromURI(const std::string& uri, const std::string& key);
+    static std::string FindQueryFromURI(const std::string& uri,
+        const std::string& key);
 
 private:
     // The URI without any parameters : e.g. /status.html
@@ -94,7 +112,8 @@ private:
     // The remote client IP.
     // If the HTTP request is forwarded by Nginx,
     // we will prefer to use the value of 'clientip' parameter in URL
-    // @see The reverse proxy Nginx configuration : proxy_pass http://127.0.0.1:8080/get/?clientip=$remote_addr;
+    // @see The reverse proxy Nginx configuration : proxy_pass
+    // http://127.0.0.1:8080/get/?clientip=$remote_addr;
     std::string remote_ip_;
 
     int response_http_code_ = 200;
@@ -107,13 +126,15 @@ private:
 
 typedef std::shared_ptr<Context> ContextPtr;
 
-typedef std::function<void(const std::string& response_data)> HTTPSendResponseCallback;
+typedef std::function<void(const std::string& response_data)>
+    HTTPSendResponseCallback;
 
-typedef std::function <
-void(EventLoop* loop,
-     const ContextPtr& ctx,
-     const HTTPSendResponseCallback& respcb) > HTTPRequestCallback;
+typedef std::function<void(EventLoop* loop,
+    const ContextPtr& ctx,
+    const HTTPSendResponseCallback& respcb)>
+    HTTPRequestCallback;
 
-typedef std::map<std::string/*The uri*/, HTTPRequestCallback> HTTPRequestCallbackMap;
-}
-}
+typedef std::map<std::string /*The uri*/, HTTPRequestCallback>
+    HTTPRequestCallbackMap;
+}  // namespace http
+}  // namespace evpp

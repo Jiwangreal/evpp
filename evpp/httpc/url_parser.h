@@ -9,9 +9,12 @@
 
 #include "evpp/inner_pre.h"
 
-namespace evpp {
-namespace httpc {
-struct EVPP_EXPORT URLParser {
+namespace evpp
+{
+namespace httpc
+{
+struct EVPP_EXPORT URLParser
+{
 public:
     std::string schema;
     std::string host;
@@ -24,5 +27,5 @@ public:
 private:
     int parse(const std::string& url);
 };
-} // httpc
-} // evpp
+}  // namespace httpc
+}  // namespace evpp

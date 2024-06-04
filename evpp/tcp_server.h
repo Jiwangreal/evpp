@@ -10,7 +10,8 @@
 
 #include <map>
 
-namespace evpp {
+namespace evpp
+{
 
 class Listener;
 
@@ -46,7 +47,10 @@ class Listener;
 //     loop.Run();
 // </code>
 //
-class EVPP_EXPORT TCPServer : public ThreadDispatchPolicy, public ServerStatus {
+class EVPP_EXPORT TCPServer
+    : public ThreadDispatchPolicy
+    , public ServerStatus
+{
 public:
     typedef std::function<void()> DoneCallback;
 
@@ -56,9 +60,9 @@ public:
     // @param name - The name of this object
     // @param thread_num - The working thread count
     TCPServer(EventLoop* loop,
-              const std::string& listen_addr/*ip:port*/,
-              const std::string& name,
-              uint32_t thread_num);
+        const std::string& listen_addr /*ip:port*/,
+        const std::string& name,
+        uint32_t thread_num);
     ~TCPServer();
 
     // @brief Do the initialization works here.
@@ -82,31 +86,40 @@ public:
 public:
     // Set a connection event relative callback when the TCPServer
     // receives a new connection or an exist connection breaks down.
-    // When these two events happened, the value of the parameter in the callback is:
+    // When these two events happened, the value of the parameter in the
+    // callback is:
     //      1. Received a new connection : TCPConn::IsConnected() == true
-    //      2. An exist connection broken down : TCPConn::IsDisconnecting() == true
-    void SetConnectionCallback(const ConnectionCallback& cb) {
+    //      2. An exist connection broken down : TCPConn::IsDisconnecting() ==
+    //      true
+    void SetConnectionCallback(const ConnectionCallback& cb)
+    {
         conn_fn_ = cb;
     }
 
     // Set the message callback to handle the messages from remote client
-    void SetMessageCallback(MessageCallback cb) {
+    void SetMessageCallback(MessageCallback cb)
+    {
         msg_fn_ = cb;
     }
 
 public:
-    const std::string& listen_addr() const {
+    const std::string& listen_addr() const
+    {
         return listen_addr_;
     }
+
 private:
     void StopThreadPool();
     void StopInLoop(DoneCallback on_stopped_cb);
     void RemoveConnection(const TCPConnPtr& conn);
-    void HandleNewConn(evpp_socket_t sockfd, const std::string& remote_addr/*ip:port*/, const struct sockaddr_in* raddr);
+    void HandleNewConn(evpp_socket_t sockfd,
+        const std::string& remote_addr /*ip:port*/,
+        const struct sockaddr_in* raddr);
     EventLoop* GetNextLoop(const struct sockaddr_in* raddr);
+
 private:
     EventLoop* loop_;  // the listening loop
-    const std::string listen_addr_; // ip:port
+    const std::string listen_addr_;  // ip:port
     const std::string name_;
     std::unique_ptr<Listener> listener_;
     std::shared_ptr<EventLoopThreadPool> tpool_;
@@ -117,7 +130,8 @@ private:
 
     // always in the listening loop thread
     uint64_t next_conn_id_ = 0;
-    typedef std::map<uint64_t/*the id of the connection*/, TCPConnPtr> ConnectionMap;
+    typedef std::map<uint64_t /*the id of the connection*/, TCPConnPtr>
+        ConnectionMap;
     ConnectionMap connections_;
 };
-}
+}  // namespace evpp

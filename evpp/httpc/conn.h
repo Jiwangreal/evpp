@@ -4,17 +4,22 @@
 #include "evpp/event_loop.h"
 
 #if defined(EVPP_HTTP_CLIENT_SUPPORTS_SSL)
-#include <event2/bufferevent_ssl.h>
-#include <openssl/ssl.h>
+    #include <event2/bufferevent_ssl.h>
+    #include <openssl/ssl.h>
 #endif
 
 struct evhttp_connection;
-namespace evpp {
-namespace httpc {
+namespace evpp
+{
+namespace httpc
+{
 class ConnPool;
-class EVPP_EXPORT Conn {
+class EVPP_EXPORT Conn
+{
 public:
-    Conn(EventLoop* loop, const std::string& host, int port,
+    Conn(EventLoop* loop,
+        const std::string& host,
+        int port,
 #if defined(EVPP_HTTP_CLIENT_SUPPORTS_SSL)
         bool enable_ssl,
 #endif
@@ -24,35 +29,45 @@ public:
     bool Init();
     void Close();
 
-    EventLoop* loop() {
+    EventLoop* loop()
+    {
         return loop_;
     }
-    struct evhttp_connection* evhttp_conn() {
+    struct evhttp_connection* evhttp_conn()
+    {
         return evhttp_conn_;
     }
-    const std::string& host() const {
+    const std::string& host() const
+    {
         return host_;
     }
-    int port() const {
+    int port() const
+    {
         return port_;
     }
 #if defined(EVPP_HTTP_CLIENT_SUPPORTS_SSL)
-    bool enable_ssl() const {
+    bool enable_ssl() const
+    {
         return enable_ssl_;
     }
-    struct bufferevent* bufferevent() const {
+    struct bufferevent* bufferevent() const
+    {
         return bufferevent_;
     }
 #endif
-    Duration timeout() const {
+    Duration timeout() const
+    {
         return timeout_;
     }
+
 private:
     friend class ConnPool;
     Conn(ConnPool* pool, EventLoop* loop);
-    ConnPool* pool() {
+    ConnPool* pool()
+    {
         return pool_;
     }
+
 private:
     EventLoop* loop_;
     ConnPool* pool_;
@@ -66,5 +81,5 @@ private:
     Duration timeout_;
     struct evhttp_connection* evhttp_conn_;
 };
-} // httpc
-} // evpp
+}  // namespace httpc
+}  // namespace evpp

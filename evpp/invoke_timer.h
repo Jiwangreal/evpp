@@ -3,14 +3,16 @@
 #include "evpp/inner_pre.h"
 #include "evpp/duration.h"
 
-namespace evpp {
+namespace evpp
+{
 class EventLoop;
 class TimerEventWatcher;
 class InvokeTimer;
 
 typedef std::shared_ptr<InvokeTimer> InvokeTimerPtr;
 
-class EVPP_EXPORT InvokeTimer : public std::enable_shared_from_this<InvokeTimer> {
+class EVPP_EXPORT InvokeTimer : public std::enable_shared_from_this<InvokeTimer>
+{
 public:
     typedef std::function<void()> Functor;
 
@@ -24,13 +26,13 @@ public:
     // @return evpp::InvokeTimerPtr - The user layer can hold this shared_ptr
     //  and can cancel this timer at any time.
     static InvokeTimerPtr Create(EventLoop* evloop,
-                                 Duration timeout,
-                                 const Functor& f,
-                                 bool periodic);
+        Duration timeout,
+        const Functor& f,
+        bool periodic);
     static InvokeTimerPtr Create(EventLoop* evloop,
-                                 Duration timeout,
-                                 Functor&& f,
-                                 bool periodic);
+        Duration timeout,
+        Functor&& f,
+        bool periodic);
     ~InvokeTimer();
 
     // It is thread safe.
@@ -40,12 +42,20 @@ public:
     // Cancel the timer and the cancel_callback_ will be invoked.
     void Cancel();
 
-    void set_cancel_callback(const Functor& fn) {
+    void set_cancel_callback(const Functor& fn)
+    {
         cancel_callback_ = fn;
     }
+
 private:
-    InvokeTimer(EventLoop* evloop, Duration timeout, const Functor& f, bool periodic);
-    InvokeTimer(EventLoop* evloop, Duration timeout, Functor&& f, bool periodic);
+    InvokeTimer(EventLoop* evloop,
+        Duration timeout,
+        const Functor& f,
+        bool periodic);
+    InvokeTimer(EventLoop* evloop,
+        Duration timeout,
+        Functor&& f,
+        bool periodic);
     void OnTimerTriggered();
     void OnCanceled();
 
@@ -56,7 +66,7 @@ private:
     Functor cancel_callback_;
     std::unique_ptr<TimerEventWatcher> timer_;
     bool periodic_;
-    std::shared_ptr<InvokeTimer> self_; // Hold myself
+    std::shared_ptr<InvokeTimer> self_;  // Hold myself
 };
 
-}
+}  // namespace evpp

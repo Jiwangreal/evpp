@@ -11,13 +11,17 @@
 
 #include "client.h"
 
-namespace evnsq {
+namespace evnsq
+{
 class Command;
 
-class EVNSQ_EXPORT Consumer : public Client {
+class EVNSQ_EXPORT Consumer : public Client
+{
 public:
-    Consumer(evpp::EventLoop* loop, const std::string& topic, const std::string& channel, const Option& ops);
+    Consumer(evpp::EventLoop* loop,
+        const std::string& topic,
+        const std::string& channel,
+        const Option& ops);
     ~Consumer();
 };
-}
-
+}  // namespace evnsq

@@ -9,9 +9,11 @@
 struct event;
 struct event_base;
 
-namespace recipes {
+namespace recipes
+{
 
-class EventWatcher {
+class EventWatcher
+{
 public:
     typedef std::function<void()> Handler;
     virtual ~EventWatcher();
@@ -19,7 +21,11 @@ public:
     void Cancel();
 
     void SetCancelCallback(const Handler& cb);
-    void ClearHandler() { handler_ = Handler(); }
+    void ClearHandler()
+    {
+        handler_ = Handler();
+    }
+
 protected:
     EventWatcher(struct event_base* evbase, const Handler& handler);
     bool Watch(double timeout_ms);
@@ -27,7 +33,8 @@ protected:
     void FreeEvent();
 
     virtual bool DoInit() = 0;
-    virtual void DoClose() {}
+    virtual void DoClose()
+    { }
 
 protected:
     struct event* event_;
@@ -37,18 +44,21 @@ protected:
     Handler cancel_callback_;
 };
 
-class TimerEventWatcher : public EventWatcher {
+class TimerEventWatcher : public EventWatcher
+{
 public:
-    TimerEventWatcher(struct event_base* evbase, const Handler& handler, double timeout_ms);
+    TimerEventWatcher(struct event_base* evbase,
+        const Handler& handler,
+        double timeout_ms);
 
     bool AsyncWait();
 
 private:
     virtual bool DoInit();
     static void HandlerFn(evutil_socket_t fd, short which, void* v);
+
 private:
     double timeout_ms_;
 };
 
-}
-
+}  // namespace recipes

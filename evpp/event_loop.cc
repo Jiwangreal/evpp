@@ -5,13 +5,18 @@
 #include "evpp/event_loop.h"
 #include "evpp/invoke_timer.h"
 
-namespace evpp {
+namespace evpp
+{
 EventLoop::EventLoop()
-    : create_evbase_myself_(true), notified_(false), pending_functor_count_(0) {
+    : create_evbase_myself_(true)
+    , notified_(false)
+    , pending_functor_count_(0)
+{
     DLOG_TRACE;
 #if LIBEVENT_VERSION_NUMBER >= 0x02001500
     struct event_config* cfg = event_config_new();
-    if (cfg) {
+    if (cfg)
+    {
         // Does not cache time to get a preciser timer
         event_config_set_flag(cfg, EVENT_BASE_FLAG_NO_CACHE_TIME);
         evbase_ = event_base_new_with_config(cfg);
@@ -24,7 +29,11 @@ EventLoop::EventLoop()
 }
 
 EventLoop::EventLoop(struct event_base* base)
-    : evbase_(base), create_evbase_myself_(false), notified_(false), pending_functor_count_(0) {
+    : evbase_(base)
+    , create_evbase_myself_(false)
+    , notified_(false)
+    , pending_functor_count_(0)
+{
     DLOG_TRACE;
     Init();
 
@@ -33,17 +42,20 @@ EventLoop::EventLoop(struct event_base* base)
     // So we need to watch the task queue here.
     bool rc = watcher_->AsyncWait();
     assert(rc);
-    if (!rc) {
+    if (!rc)
+    {
         LOG_FATAL << "PipeEventWatcher init failed.";
     }
     status_.store(kRunning);
 }
 
-EventLoop::~EventLoop() {
+EventLoop::~EventLoop()
+{
     DLOG_TRACE;
     watcher_.reset();
 
-    if (evbase_ != nullptr && create_evbase_myself_) {
+    if (evbase_ != nullptr && create_evbase_myself_)
+    {
         event_base_free(evbase_);
         evbase_ = nullptr;
     }
@@ -52,65 +64,78 @@ EventLoop::~EventLoop() {
     pending_functors_ = nullptr;
 }
 
-void EventLoop::Init() {
+void EventLoop::Init()
+{
     DLOG_TRACE;
     status_.store(kInitializing);
 #ifdef H_HAVE_BOOST
     const size_t kPendingFunctorCount = 1024 * 16;
-    this->pending_functors_ = new boost::lockfree::queue<Functor*>(kPendingFunctorCount);
+    this->pending_functors_
+        = new boost::lockfree::queue<Functor*>(kPendingFunctorCount);
 #elif defined(H_HAVE_CAMERON314_CONCURRENTQUEUE)
     this->pending_functors_ = new moodycamel::ConcurrentQueue<Functor>();
 #else
     this->pending_functors_ = new std::vector<Functor>();
 #endif
 
-    tid_ = std::this_thread::get_id(); // The default thread id
+    tid_ = std::this_thread::get_id();  // The default thread id
 
     InitNotifyPipeWatcher();
 
     status_.store(kInitialized);
 }
 
-void EventLoop::InitNotifyPipeWatcher() {
+void EventLoop::InitNotifyPipeWatcher()
+{
     // Initialized task queue notify pipe watcher
-    watcher_.reset(new PipeEventWatcher(this, std::bind(&EventLoop::DoPendingFunctors, this)));
+    watcher_.reset(new PipeEventWatcher(
+        this, std::bind(&EventLoop::DoPendingFunctors, this)));
     int rc = watcher_->Init();
     assert(rc);
-    if (!rc) {
+    if (!rc)
+    {
         LOG_FATAL << "PipeEventWatcher init failed.";
     }
 }
 
-void EventLoop::Run() {
+void EventLoop::Run()
+{
     DLOG_TRACE;
     status_.store(kStarting);
-    tid_ = std::this_thread::get_id(); // The actual thread id
+    tid_ = std::this_thread::get_id();  // The actual thread id
 
     int rc = watcher_->AsyncWait();
     assert(rc);
-    if (!rc) {
+    if (!rc)
+    {
         LOG_FATAL << "PipeEventWatcher init failed.";
     }
 
     // After everything have initialized, we set the status to kRunning
     status_.store(kRunning);
-
+    LOG_INFO << "event_base_dispatch.................";
     rc = event_base_dispatch(evbase_);
-    if (rc == 1) {
+    if (rc == 1)
+    {
         LOG_ERROR << "event_base_dispatch error: no event registered";
-    } else if (rc == -1) {
+    }
+    else if (rc == -1)
+    {
         int serrno = errno;
-        LOG_ERROR << "event_base_dispatch error " << serrno << " " << strerror(serrno);
+        LOG_ERROR << "event_base_dispatch error " << serrno << " "
+                  << strerror(serrno);
     }
 
-    // Make sure watcher_ does construct, initialize and destruct in the same thread.
+    // Make sure watcher_ does construct, initialize and destruct in the same
+    // thread.
     watcher_.reset();
     DLOG_TRACE << "EventLoop stopped, tid=" << std::this_thread::get_id();
 
     status_.store(kStopped);
 }
 
-void EventLoop::Stop() {
+void EventLoop::Stop()
+{
     DLOG_TRACE;
     assert(status_.load() == kRunning);
     status_.store(kStopping);
@@ -118,15 +143,19 @@ void EventLoop::Stop() {
     QueueInLoop(std::bind(&EventLoop::StopInLoop, this));
 }
 
-void EventLoop::StopInLoop() {
-    DLOG_TRACE << "EventLoop is stopping now, tid=" << std::this_thread::get_id();
+void EventLoop::StopInLoop()
+{
+    DLOG_TRACE << "EventLoop is stopping now, tid="
+               << std::this_thread::get_id();
     assert(status_.load() == kStopping);
 
     auto f = [this]() {
-        for (int i = 0;;i++) {
+        for (int i = 0;; i++)
+        {
             DLOG_TRACE << "calling DoPendingFunctors index=" << i;
             DoPendingFunctors();
-            if (IsPendingQueueEmpty()) {
+            if (IsPendingQueueEmpty())
+            {
                 break;
             }
         }
@@ -145,11 +174,13 @@ void EventLoop::StopInLoop() {
     DLOG_TRACE << "end of StopInLoop";
 }
 
-void EventLoop::AfterFork() {
+void EventLoop::AfterFork()
+{
     int rc = event_reinit(evbase_);
     assert(rc == 0);
 
-    if (rc != 0) {
+    if (rc != 0)
+    {
         LOG_FATAL << "event_reinit failed!";
         abort();
     }
@@ -169,71 +200,99 @@ void EventLoop::AfterFork() {
     InitNotifyPipeWatcher();
 }
 
-InvokeTimerPtr EventLoop::RunAfter(double delay_ms, const Functor& f) {
+InvokeTimerPtr EventLoop::RunAfter(double delay_ms, const Functor& f)
+{
     DLOG_TRACE;
     return RunAfter(Duration(delay_ms / 1000.0), f);
 }
 
-InvokeTimerPtr EventLoop::RunAfter(double delay_ms, Functor&& f) {
+InvokeTimerPtr EventLoop::RunAfter(double delay_ms, Functor&& f)
+{
     DLOG_TRACE;
     return RunAfter(Duration(delay_ms / 1000.0), std::move(f));
 }
 
-InvokeTimerPtr EventLoop::RunAfter(Duration delay, const Functor& f) {
+InvokeTimerPtr EventLoop::RunAfter(Duration delay, const Functor& f)
+{
     DLOG_TRACE;
     std::shared_ptr<InvokeTimer> t = InvokeTimer::Create(this, delay, f, false);
     t->Start();
     return t;
 }
 
-InvokeTimerPtr EventLoop::RunAfter(Duration delay, Functor&& f) {
+InvokeTimerPtr EventLoop::RunAfter(Duration delay, Functor&& f)
+{
     DLOG_TRACE;
-    std::shared_ptr<InvokeTimer> t = InvokeTimer::Create(this, delay, std::move(f), false);
+    std::shared_ptr<InvokeTimer> t
+        = InvokeTimer::Create(this, delay, std::move(f), false);
     t->Start();
     return t;
 }
 
-evpp::InvokeTimerPtr EventLoop::RunEvery(Duration interval, const Functor& f) {
+evpp::InvokeTimerPtr EventLoop::RunEvery(Duration interval, const Functor& f)
+{
     DLOG_TRACE;
-    std::shared_ptr<InvokeTimer> t = InvokeTimer::Create(this, interval, f, true);
+    std::shared_ptr<InvokeTimer> t
+        = InvokeTimer::Create(this, interval, f, true);
     t->Start();
     return t;
 }
 
-evpp::InvokeTimerPtr EventLoop::RunEvery(Duration interval, Functor&& f) {
+evpp::InvokeTimerPtr EventLoop::RunEvery(Duration interval, Functor&& f)
+{
     DLOG_TRACE;
-    std::shared_ptr<InvokeTimer> t = InvokeTimer::Create(this, interval, std::move(f), true);
+    std::shared_ptr<InvokeTimer> t
+        = InvokeTimer::Create(this, interval, std::move(f), true);
     t->Start();
     return t;
 }
 
-void EventLoop::RunInLoop(const Functor& functor) {
+void EventLoop::RunInLoop(const Functor& functor)
+{
     DLOG_TRACE;
-    if (IsRunning() && IsInLoopThread()) {
+    if (IsRunning() && IsInLoopThread())
+    {
         functor();
-    } else {
+    }
+    else
+    {
         QueueInLoop(functor);
     }
 }
 
-void EventLoop::RunInLoop(Functor&& functor) {
+/*
+    如果只有一个functor，直接执行，如果有很多，放到queue中排队执行
+*/
+void EventLoop::RunInLoop(Functor&& functor)
+{
     DLOG_TRACE;
-    if (IsRunning() && IsInLoopThread()) {
+    if (IsRunning() && IsInLoopThread())
+    {
+        LOG_INFO << "Executing in Listen Thread.";
         functor();
-    } else {
+    }
+    else
+    {
+
+        LOG_INFO << "Putting in Listen Thread Queue.";
         QueueInLoop(std::move(functor));
     }
 }
 
-void EventLoop::QueueInLoop(const Functor& cb) {
-    DLOG_TRACE << "pending_functor_count_=" << pending_functor_count_ << " PendingQueueSize=" << GetPendingQueueSize() << " notified_=" << notified_.load();
+void EventLoop::QueueInLoop(const Functor& cb)
+{
+    DLOG_TRACE << "pending_functor_count_=" << pending_functor_count_
+               << " PendingQueueSize=" << GetPendingQueueSize()
+               << " notified_=" << notified_.load();
     {
 #ifdef H_HAVE_BOOST
         auto f = new Functor(cb);
-        while (!pending_functors_->push(f)) {
+        while (!pending_functors_->push(f))
+        {
         }
 #elif defined(H_HAVE_CAMERON314_CONCURRENTQUEUE)
-        while (!pending_functors_->enqueue(cb)) {
+        while (!pending_functors_->enqueue(cb))
+        {
         }
 #else
         std::lock_guard<std::mutex> lock(mutex_);
@@ -241,42 +300,59 @@ void EventLoop::QueueInLoop(const Functor& cb) {
 #endif
     }
     ++pending_functor_count_;
-    DLOG_TRACE << "queued a new Functor. pending_functor_count_=" << pending_functor_count_ << " PendingQueueSize=" << GetPendingQueueSize() << " notified_=" << notified_.load();
-    if (!notified_.load()) {
+    DLOG_TRACE << "queued a new Functor. pending_functor_count_="
+               << pending_functor_count_
+               << " PendingQueueSize=" << GetPendingQueueSize()
+               << " notified_=" << notified_.load();
+    if (!notified_.load())
+    {
         DLOG_TRACE << "call watcher_->Nofity() notified_.store(true)";
 
         // We must set notified_ to true before calling `watcher_->Nodify()`
         // otherwise there is a change that:
         //  1. We called watcher_- > Nodify() on thread1
-        //  2. On thread2 we watched this event, so wakeup the CPU changed to run this EventLoop on thread2 and executed all the pending task
+        //  2. On thread2 we watched this event, so wakeup the CPU changed to
+        //  run this EventLoop on thread2 and executed all the pending task
         //  3. Then the CPU changed to run on thread1 and set notified_ to true
-        //  4. Then, some thread except thread2 call this QueueInLoop to push a task into the queue, and find notified_ is true, so there is no change to wakeup thread2 to execute this task
+        //  4. Then, some thread except thread2 call this QueueInLoop to push a
+        //  task into the queue, and find notified_ is true, so there is no
+        //  change to wakeup thread2 to execute this task
         notified_.store(true);
 
         // Sometimes one thread invoke EventLoop::QueueInLoop(...), but anther
-        // thread is invoking EventLoop::Stop() to stop this loop. At this moment
-        // this loop maybe is stopping and the watcher_ object maybe has been
-        // released already.
-        if (watcher_) {
+        // thread is invoking EventLoop::Stop() to stop this loop. At this
+        // moment this loop maybe is stopping and the watcher_ object maybe has
+        // been released already.
+        if (watcher_)
+        {
             watcher_->Notify();
-        } else {
+        }
+        else
+        {
             DLOG_TRACE << "status=" << StatusToString();
             assert(!IsRunning());
         }
-    } else {
-         DLOG_TRACE << "No need to call watcher_->Nofity()";
+    }
+    else
+    {
+        DLOG_TRACE << "No need to call watcher_->Nofity()";
     }
 }
 
-void EventLoop::QueueInLoop(Functor&& cb) {
-    DLOG_TRACE << "pending_functor_count_=" << pending_functor_count_ << " PendingQueueSize=" << GetPendingQueueSize() << " notified_=" << notified_.load();
+void EventLoop::QueueInLoop(Functor&& cb)
+{
+    DLOG_TRACE << "pending_functor_count_=" << pending_functor_count_
+               << " PendingQueueSize=" << GetPendingQueueSize()
+               << " notified_=" << notified_.load();
     {
 #ifdef H_HAVE_BOOST
-        auto f = new Functor(std::move(cb)); // TODO Add test code for it
-        while (!pending_functors_->push(f)) {
+        auto f = new Functor(std::move(cb));  // TODO Add test code for it
+        while (!pending_functors_->push(f))
+        {
         }
 #elif defined(H_HAVE_CAMERON314_CONCURRENTQUEUE)
-        while (!pending_functors_->enqueue(std::move(cb))) {
+        while (!pending_functors_->enqueue(std::move(cb)))
+        {
         }
 #else
         std::lock_guard<std::mutex> lock(mutex_);
@@ -284,28 +360,44 @@ void EventLoop::QueueInLoop(Functor&& cb) {
 #endif
     }
     ++pending_functor_count_;
-    DLOG_TRACE << "queued a new Functor. pending_functor_count_=" << pending_functor_count_ << " PendingQueueSize=" << GetPendingQueueSize() << " notified_=" << notified_.load();
-    if (!notified_.load()) {
+    DLOG_TRACE << "queued a new Functor. pending_functor_count_="
+               << pending_functor_count_
+               << " PendingQueueSize=" << GetPendingQueueSize()
+               << " notified_=" << notified_.load();
+    if (!notified_.load())
+    {
         DLOG_TRACE << "call watcher_->Nofity() notified_.store(true)";
         notified_.store(true);
-        if (watcher_) {
+        if (watcher_)
+        {
             watcher_->Notify();
-        } else {
-            DLOG_TRACE << "watcher_ is empty, maybe we call EventLoop::QueueInLoop on a stopped EventLoop. status=" << StatusToString();
+        }
+        else
+        {
+            DLOG_TRACE
+                << "watcher_ is empty, maybe we call EventLoop::QueueInLoop on "
+                   "a stopped EventLoop. status="
+                << StatusToString();
             assert(!IsRunning());
         }
-    } else {
+    }
+    else
+    {
         DLOG_TRACE << "No need to call watcher_->Nofity()";
     }
 }
 
-void EventLoop::DoPendingFunctors() {
-    DLOG_TRACE << "pending_functor_count_=" << pending_functor_count_ << " PendingQueueSize=" << GetPendingQueueSize() << " notified_=" << notified_.load();
+void EventLoop::DoPendingFunctors()
+{
+    DLOG_TRACE << "pending_functor_count_=" << pending_functor_count_
+               << " PendingQueueSize=" << GetPendingQueueSize()
+               << " notified_=" << notified_.load();
 
 #ifdef H_HAVE_BOOST
     notified_.store(false);
     Functor* f = nullptr;
-    while (pending_functors_->pop(f)) {
+    while (pending_functors_->pop(f))
+    {
         (*f)();
         delete f;
         --pending_functor_count_;
@@ -313,7 +405,8 @@ void EventLoop::DoPendingFunctors() {
 #elif defined(H_HAVE_CAMERON314_CONCURRENTQUEUE)
     notified_.store(false);
     Functor f;
-    while (pending_functors_->try_dequeue(f)) {
+    while (pending_functors_->try_dequeue(f))
+    {
         f();
         --pending_functor_count_;
     }
@@ -323,18 +416,26 @@ void EventLoop::DoPendingFunctors() {
         std::lock_guard<std::mutex> lock(mutex_);
         notified_.store(false);
         pending_functors_->swap(functors);
-        DLOG_TRACE << "pending_functor_count_=" << pending_functor_count_ << " PendingQueueSize=" << GetPendingQueueSize() << " notified_=" << notified_.load();
+        DLOG_TRACE << "pending_functor_count_=" << pending_functor_count_
+                   << " PendingQueueSize=" << GetPendingQueueSize()
+                   << " notified_=" << notified_.load();
     }
-    DLOG_TRACE << "pending_functor_count_=" << pending_functor_count_ << " PendingQueueSize=" << GetPendingQueueSize() << " notified_=" << notified_.load();
-    for (size_t i = 0; i < functors.size(); ++i) {
+    DLOG_TRACE << "pending_functor_count_=" << pending_functor_count_
+               << " PendingQueueSize=" << GetPendingQueueSize()
+               << " notified_=" << notified_.load();
+    for (size_t i = 0; i < functors.size(); ++i)
+    {
         functors[i]();
         --pending_functor_count_;
     }
-    DLOG_TRACE << "pending_functor_count_=" << pending_functor_count_ << " PendingQueueSize=" << GetPendingQueueSize() << " notified_=" << notified_.load();
+    DLOG_TRACE << "pending_functor_count_=" << pending_functor_count_
+               << " PendingQueueSize=" << GetPendingQueueSize()
+               << " notified_=" << notified_.load();
 #endif
 }
 
-size_t EventLoop::GetPendingQueueSize() {
+size_t EventLoop::GetPendingQueueSize()
+{
 #ifdef H_HAVE_BOOST
     return static_cast<size_t>(pending_functor_count_.load());
 #elif defined(H_HAVE_CAMERON314_CONCURRENTQUEUE)
@@ -344,7 +445,8 @@ size_t EventLoop::GetPendingQueueSize() {
 #endif
 }
 
-bool EventLoop::IsPendingQueueEmpty() {
+bool EventLoop::IsPendingQueueEmpty()
+{
 #ifdef H_HAVE_BOOST
     return pending_functors_->empty();
 #elif defined(H_HAVE_CAMERON314_CONCURRENTQUEUE)
@@ -354,4 +456,4 @@ bool EventLoop::IsPendingQueueEmpty() {
 #endif
 }
 
-}
+}  // namespace evpp

@@ -5,12 +5,14 @@
 
 struct event_base;
 
-namespace recipes {
+namespace recipes
+{
 
 class TimerEventWatcher;
 class InvokeTimer;
 
-class InvokeTimer {
+class InvokeTimer
+{
 public:
     typedef std::function<void()> Functor;
 
@@ -29,4 +31,4 @@ private:
     std::shared_ptr<TimerEventWatcher> timer_;
 };
 
-}
+}  // namespace recipes

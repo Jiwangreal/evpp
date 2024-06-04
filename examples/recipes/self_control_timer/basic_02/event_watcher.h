@@ -9,46 +9,56 @@
 struct event;
 struct event_base;
 
-namespace recipes {
+namespace recipes
+{
 
-    class EventWatcher {
-    public:
-        typedef std::function<void()> Handler;
-        virtual ~EventWatcher();
-        bool Init();
-        void Cancel();
+class EventWatcher
+{
+public:
+    typedef std::function<void()> Handler;
+    virtual ~EventWatcher();
+    bool Init();
+    void Cancel();
 
-        void SetCancelCallback(const Handler& cb);
-        void ClearHandler() { handler_ = Handler(); }
-    protected:
-        EventWatcher(struct event_base* evbase, const Handler& handler);
-        bool Watch(double timeout_ms);
-        void Close();
-        void FreeEvent();
+    void SetCancelCallback(const Handler& cb);
+    void ClearHandler()
+    {
+        handler_ = Handler();
+    }
 
-        virtual bool DoInit() = 0;
-        virtual void DoClose() {}
+protected:
+    EventWatcher(struct event_base* evbase, const Handler& handler);
+    bool Watch(double timeout_ms);
+    void Close();
+    void FreeEvent();
 
-    protected:
-        struct event* event_;
-        struct event_base* evbase_;
-        bool attached_;
-        Handler handler_;
-        Handler cancel_callback_;
-    };
+    virtual bool DoInit() = 0;
+    virtual void DoClose()
+    { }
 
-    class TimerEventWatcher : public EventWatcher {
-    public:
-        TimerEventWatcher(struct event_base* evbase, const Handler& handler, double timeout_ms);
+protected:
+    struct event* event_;
+    struct event_base* evbase_;
+    bool attached_;
+    Handler handler_;
+    Handler cancel_callback_;
+};
 
-        bool AsyncWait();
+class TimerEventWatcher : public EventWatcher
+{
+public:
+    TimerEventWatcher(struct event_base* evbase,
+        const Handler& handler,
+        double timeout_ms);
 
-    private:
-        virtual bool DoInit();
-        static void HandlerFn(evutil_socket_t fd, short which, void* v);
-    private:
-        double timeout_ms_;
-    };
+    bool AsyncWait();
 
-}
+private:
+    virtual bool DoInit();
+    static void HandlerFn(evutil_socket_t fd, short which, void* v);
 
+private:
+    double timeout_ms_;
+};
+
+}  // namespace recipes
