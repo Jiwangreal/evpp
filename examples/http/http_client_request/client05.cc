@@ -10,29 +10,44 @@
 #include "../../../examples/winmain-inl.h"
 
 static int responsed = 0;
-static void HandleHTTPResponse(const std::shared_ptr<evpp::httpc::Response>& response, evpp::httpc::PostRequest* request) {
-    LOG_INFO << "http_code=" << response->http_code()
-        << " URL=http://" << request->host() << request->uri()
-        << " [" << response->body().ToString() << "]";
+static void HandleHTTPResponse(
+    const std::shared_ptr<evpp::httpc::Response>& response,
+    evpp::httpc::PostRequest* request)
+{
+    LOG_INFO << "http_code=" << response->http_code() << " URL=http://"
+             << request->host() << request->uri() << " ["
+             << response->body().ToString() << "]";
     const char* header = response->FindHeader("Connection");
-    if (header) {
+    if (header)
+    {
         LOG_INFO << "HTTP HEADER Connection=" << header;
     }
     responsed++;
     assert(request == response->request());
-    delete request; // The request MUST BE deleted in EventLoop thread.
+    delete request;  // The request MUST BE deleted in EventLoop thread.
 }
 
-int main() {
+int main()
+{
     evpp::EventLoopThread t;
     t.Start(true);
-    evpp::httpc::PostRequest* r = new evpp::httpc::PostRequest(t.loop(), "http://www.360.cn/robots.txt", "HTTP POST BODY", evpp::Duration(5.0));
+    evpp::httpc::PostRequest* r = new evpp::httpc::PostRequest(t.loop(),
+        "http://www.360.cn/robots.txt",
+        "HTTP POST BODY",
+        evpp::Duration(5.0));
     r->Execute(std::bind(&HandleHTTPResponse, std::placeholders::_1, r));
-    r = new evpp::httpc::PostRequest(t.loop(), "http://www.sohu.com/robots.txt", "HTTP POST BODY", evpp::Duration(5.0));
+    r = new evpp::httpc::PostRequest(t.loop(),
+        "http://www.sohu.com/robots.txt",
+        "HTTP POST BODY",
+        evpp::Duration(5.0));
     r->Execute(std::bind(&HandleHTTPResponse, std::placeholders::_1, r));
-    r = new evpp::httpc::PostRequest(t.loop(), "http://www.so.com/status.html", "HTTP POST BODY", evpp::Duration(5.0));
+    r = new evpp::httpc::PostRequest(t.loop(),
+        "http://www.so.com/status.html",
+        "HTTP POST BODY",
+        evpp::Duration(5.0));
     r->Execute(std::bind(&HandleHTTPResponse, std::placeholders::_1, r));
-    while (responsed != 3) {
+    while (responsed != 3)
+    {
         usleep(1);
     }
 
