@@ -376,7 +376,7 @@ void Server::Dispatch(EventLoop* listening_loop,
         user_callback(loop, ctx, response_callback);
     };
 
-    loop->RunIInLoop(f);
+    loop->RunInLoop(f);
 }
 
 EventLoop* Server::GetNextLoop(EventLoop* default_loop, const ContextPtr& ctx)

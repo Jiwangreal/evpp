@@ -261,7 +261,7 @@ void EventLoop::RunInLoop(const Functor& functor)
 }
 
 /*
-    如果只有一个functor，直接执行，如果有很多，放到queue中排队执行
+    EventLoop 没有start之前，放在队列里面，如果启动以后，直接跑
 */
 void EventLoop::RunInLoop(Functor&& functor)
 {
@@ -275,6 +275,7 @@ void EventLoop::RunInLoop(Functor&& functor)
     {
 
         LOG_INFO << "Putting in Listen Thread Queue.";
+
         QueueInLoop(std::move(functor));
     }
 }

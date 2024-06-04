@@ -70,8 +70,8 @@ int EventDel(struct event* ev) {
                 assert(it->second == id);
             }
             evmap.erase(it);
-        }
     }
+        }
     LOG_DEBUG << "event_del ev=" << ev << " fd=" << ev->ev_fd << " user_ptr=" << ev->ev_arg << " tid=" << std::this_thread::get_id();
 #endif
     return event_del(ev);
